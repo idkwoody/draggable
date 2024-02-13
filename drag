@@ -498,7 +498,7 @@ function Library:create(options)
 
 			Event:connect(function()
 				local Input = core.InputBegan:connect(function(Key)
-					if Key.UserInputType == Enum.UserInputType.Button1 or Key.UserInputType.Touch then
+					if Key.UserInputType == Enum.UserInputType.Button1 or Key.UserInputType == Enum.UserInputType.Touch then
 						local ObjectPosition = Vector2.new(Mouse.X - core.AbsolutePosition.X, Mouse.Y - core.AbsolutePosition.Y)
 						while RunService.RenderStepped:wait() and (UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or #UserInputService:GetTouches() > 0) do
 
