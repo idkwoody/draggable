@@ -487,59 +487,52 @@ function Library:create(options)
 		core.ClipsDescendants = false
 	end)
 
-	do
-		local S, Event = pcall(function()
-			return core.MouseEnter
-		end)
+	do 
+local S, Event = pcall(function()
+    return core.MouseEnter
+end)
 
-		if S then
-			core.Active = true;
+if S then
+    core.Active = true;
 
-			Event:connect(function()
-				local Input = core.InputBegan:connect(function(Key)
-					if Key.UserInputType == Enum.UserInputType.MouseButton1 then
-						local ObjectPosition = Vector2.new(Mouse.X - core.AbsolutePosition.X, Mouse.Y - core.AbsolutePosition.Y)
-						while RunService.RenderStepped:wait() and (UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or #UserInputService:GetTouches() > 0) do
+    Event:connect(function()
+        local Input = core.InputBegan:connect(function(Key)
+            if Key.UserInputType == Enum.UserInputType.MouseButton1 or Key.UserInputType == Enum.UserInputType.Touch then
+                local startPosition = Key.UserInputType == Enum.UserInputType.Touch and Key.Position or Vector2.new(Mouse.X, Mouse.Y)
+                local ObjectPosition = startPosition - Vector2.new(core.AbsolutePosition.X, core.AbsolutePosition.Y)
+                while RunService.RenderStepped:wait() and 
+                      (UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or 
+                      UserInputService:IsTouchPressed() or 
+                      #UserInputService:GetTouches() > 0) do
 
-							if Library.LockDragging then
-								local FrameX, FrameY = math.clamp(Mouse.X - ObjectPosition.X, 0, gui.AbsoluteSize.X - core.AbsoluteSize.X), math.clamp(Mouse.Y - ObjectPosition.Y, 0, gui.AbsoluteSize.Y - core.AbsoluteSize.Y)
-								core:tween{
-									Position = UDim2.fromOffset(FrameX + (core.Size.X.Offset * core.AnchorPoint.X), FrameY + (core.Size.Y.Offset * core.AnchorPoint.Y)),
-									Length = Library.DragSpeed
-								}
-							else
-								core:tween{
-									Position = UDim2.fromOffset(Mouse.X - ObjectPosition.X + (core.Size.X.Offset * core.AnchorPoint.X), Mouse.Y - ObjectPosition.Y + (core.Size.Y.Offset * core.AnchorPoint.Y)),
-									Length = Library.DragSpeed	
-								}
-							end	
-							--[[core.AbsoluteObject:TweenPosition(
-								UDim2.new(0, Mouse.X - ObjectPosition.X + (core.Size.X.Offset * core.AnchorPoint.X), 0, Mouse.Y - ObjectPosition.Y + (core.Size.Y.Offset * core.AnchorPoint.Y)),           
-								Enum.EasingDirection.In,
-								Enum.EasingStyle.Sine,
-								Library.DragSpeed,
-								true
-								
-								--
-								core:tween{
-								Position = UDim2.new(0, Mouse.X - ObjectPosition.X + (core.Size.X.Offset * core.AnchorPoint.X), 0, Mouse.Y - ObjectPosition.Y + (core.Size.Y.Offset * core.AnchorPoint.Y)),
-								Direction = Enum.EasingDirection.Out,
-								Style = Enum.EasingStyle.Quad,
-								Length = Library.DragSpeed
-							}
-							)]]
-						end
-					end
-				end)
+                    local currentPosition = UserInputService:GetMouseLocation() -- For touch, this gets updated to the touch position.
+                    if Library.LockDragging then
+                        local FrameX, FrameY = math.clamp(currentPosition.X - ObjectPosition.X, 0, gui.AbsoluteSize.X - core.AbsoluteSize.X), 
+                                               math.clamp(currentPosition.Y - ObjectPosition.Y, 0, gui.AbsoluteSize.Y - core.AbsoluteSize.Y)
+                        core:tween{
+                            Position = UDim2.fromOffset(FrameX + (core.Size.X.Offset * core.AnchorPoint.X), 
+                                                         FrameY + (core.Size.Y.Offset * core.AnchorPoint.Y)),
+                            Length = Library.DragSpeed
+                        }
+                    else
+                        core:tween{
+                            Position = UDim2.fromOffset(currentPosition.X - ObjectPosition.X + (core.Size.X.Offset * core.AnchorPoint.X), 
+                                                         currentPosition.Y - ObjectPosition.Y + (core.Size.Y.Offset * core.AnchorPoint.Y)),
+                            Length = Library.DragSpeed    
+                        }
+                    end  
+                end
+            end
+        end)
 
-				local Leave
-				Leave = core.MouseLeave:connect(function()
-					Input:disconnect()
-					Leave:disconnect()
-				end)
-			end)
-		end
-	end
+        local Leave
+        Leave = core.MouseLeave:connect(function()
+            Input:disconnect()
+            Leave:disconnect()
+        end)
+    end)
+end
+
 
 	rawset(core, "oldSize", options.Size)
 
